@@ -11,8 +11,7 @@ import org.mockito.junit.MockitoRule;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestOperations;
 
-import java.util.Collections;
-import java.util.Optional;
+import java.util.*;
 
 public class DataEnrichmentServiceActivatorTest {
     @Rule
@@ -28,35 +27,35 @@ public class DataEnrichmentServiceActivatorTest {
     RestOperations restOperations;
 
     @Test
-    public void sendValidJson_shouldReturnAValidString() {
+    public void sendValidJson_shouldReturnEnrichedData() {
         // assemble
         Mockito.when(restOperations.getForEntity(Matchers.anyString(), Matchers.any(Class.class)))
-                .thenReturn(ResponseEntity.ok(Collections.singletonMap("enrichedData", "")));
+                .thenReturn(ResponseEntity.ok(Collections.singletonMap("enrichedData", "enrichedData".getBytes())));
 
         // act
-        byte[] bytes = "{\"input\":\"test\"}".getBytes();
-        Optional<String> enrichedResponse = dataEnrichmentServiceActivator.enrichData(bytes);
+        byte[] output = dataEnrichmentServiceActivator.enrichData(null, null);
 
         //assert
-        Assertions.assertThat(enrichedResponse.get()).isEqualTo("123456789");
+        Assertions.assertThat(output).isEqualTo("enrichedData".getBytes());
     }
 
     @Test
-    public void sendValidJson_shouldSaveEnrichedData() {
+    public void sendValidJson_shouldSaveEnrichedDataAndUniqueId() {
         // assemble
         ArgumentCaptor<EnrichedData> dataArgumentCaptor = ArgumentCaptor.forClass(EnrichedData.class);
         Mockito.when(enrichedDataRepository.save(dataArgumentCaptor.capture()))
                 .thenReturn(new EnrichedData());
 
         Mockito.when(restOperations.getForEntity(Matchers.anyString(), Matchers.any(Class.class)))
-                .thenReturn(ResponseEntity.ok(Collections.singletonMap("enrichedData", "")));
+                .thenReturn(ResponseEntity.ok(Collections.singletonMap("enrichedData", "enrichedData".getBytes())));
 
         // act
-        byte[] bytes = "{\"input\":\"test\"}".getBytes();
-        dataEnrichmentServiceActivator.enrichData(bytes);
+        UUID uuid = UUID.randomUUID();
+        dataEnrichmentServiceActivator.enrichData(null, uuid);
 
         //assert
         EnrichedData savedData = dataArgumentCaptor.getValue();
-        Assertions.assertThat(savedData.getEnrichment()).isEqualTo("".getBytes());
+        Assertions.assertThat(savedData.getEnrichment()).isEqualTo("enrichedData".getBytes());
+        Assertions.assertThat(savedData.getUuid()).isEqualTo(uuid);
     }
 }

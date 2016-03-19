@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestOperations;
 
 import java.util.Map;
-import java.util.Optional;
+import java.util.UUID;
 
 public class DataEnrichmentServiceActivator {
 
@@ -18,16 +18,16 @@ public class DataEnrichmentServiceActivator {
         this.restOperations = restOperations;
     }
 
-    public Optional<String> enrichData(byte[] bytes) {
-        // Make enrichment
+    public byte[] enrichData(byte[] bytes, UUID uuid) {
         ResponseEntity<Map> responseEntity = restOperations.getForEntity("/someUrl", Map.class);
-        byte[] enrichedDatum = responseEntity.getBody().get("enrichedData").toString().getBytes();
+        Map<String, Object> body = responseEntity.getBody();
+        byte[] enrichedDatum = (byte[]) body.get("enrichedData");
 
-        // set response and save element
         EnrichedData enrichedData = new EnrichedData();
         enrichedData.setEnrichment(enrichedDatum);
+        enrichedData.setUuid(uuid);
+        enrichedDataRepository.save(enrichedData);
 
-        this.enrichedDataRepository.save(enrichedData);
-        return Optional.of("123456789");
+        return enrichedDatum;
     }
 }

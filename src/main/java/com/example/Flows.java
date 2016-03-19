@@ -9,12 +9,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.core.GenericSelector;
 import org.springframework.integration.dsl.EnricherSpec;
+import org.springframework.integration.dsl.HeaderEnricherSpec;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.IntegrationFlowDefinition;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.dsl.support.Consumer;
-import org.springframework.integration.dsl.support.Function;
 import org.springframework.integration.transformer.GenericTransformer;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -40,6 +39,10 @@ public class Flows {
                 .publishSubscribeChannel(publishSubscribeSpec -> {
                     publishSubscribeSpec.subscribe(
                             flow -> {
+                                flow.enrichHeaders((Consumer<HeaderEnricherSpec>) headerEnricherSpec -> {
+                                    headerEnricherSpec.header("X-UUID", UUID.randomUUID());
+                                });
+
                                 flow.filter(new GenericSelector<byte[]>() {
                                     ObjectMapper objectMapper = new ObjectMapper();
 
@@ -72,12 +75,13 @@ public class Flows {
                                         try {
                                             return objectMapper.writeValueAsString(source);
                                         } catch (JsonProcessingException e) {
+                                            throw new InvalidDataFormatException();
                                         }
-                                        return null;
                                     }
                                 });
 
                                 flow.channel("gateway.output");
+
                             }).subscribe(
                             flow ->
                                     flow.handle((MessageHandler) message -> {

@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public class AuditEntityListener {
     @PrePersist
-    public void auditPrePersist(Data data) {
+    public void auditPrePersist(BaseEntity data) {
         data.setZonedDateTime(ZonedDateTime.now());
         data.setUniqueDataId(UUID.randomUUID().toString());
     }

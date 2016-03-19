@@ -1,18 +1,12 @@
 package com.example.input.persistance;
 
-import javax.persistence.*;
-import java.time.ZonedDateTime;
+import javax.persistence.Entity;
+import java.util.UUID;
 
 @Entity
-@EntityListeners(AuditEntityListener.class)
-public class EnrichedData {
-    @Id
-    @GeneratedValue(strategy = GenerationType.TABLE)
-    private long id;
-
-    private String uniqueDataId;
-    private ZonedDateTime zonedDateTime;
+public class EnrichedData extends BaseEntity {
     private byte[] enrichment;
+    private UUID uuid;
 
     public byte[] getEnrichment() {
         return enrichment;
@@ -20,5 +14,13 @@ public class EnrichedData {
 
     public void setEnrichment(byte[] enrichment) {
         this.enrichment = enrichment;
+    }
+
+    public UUID getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(UUID uuid) {
+        this.uuid = uuid;
     }
 }

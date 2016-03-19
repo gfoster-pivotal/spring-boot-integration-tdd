@@ -3,6 +3,8 @@ package com.example.input;
 import com.example.DemoApplication;
 import com.example.input.persistance.Data;
 import com.example.input.persistance.DataRepository;
+import com.example.input.persistance.EnrichedData;
+import com.example.input.persistance.EnrichedDataRepository;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -34,6 +36,9 @@ public class InputApiControllerTest {
 
     @Autowired
     private DataRepository dataRepository;
+
+    @Autowired
+    private EnrichedDataRepository enrichedDataRepository;
 
     private MockMvc mockMvc;
 
@@ -76,7 +81,7 @@ public class InputApiControllerTest {
     }
 
     @Test
-    public void sendDataRequest_shouldPersistData() throws Exception {
+    public void sendDataRequest_shouldPersistRawData() throws Exception {
         byte[] content = "{\"input:\":\"test\"}".getBytes();
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
                 .post("/input")
@@ -87,4 +92,17 @@ public class InputApiControllerTest {
         assertThat(data.getSource()).isEqualTo("web");
         assertThat(data.getOriginalData()).isEqualTo(content);
     }
+
+//    @Test
+//    public void sendDataRequest_shouldPersistEnrichedData() throws Exception {
+//        byte[] content = "{\"input:\":\"test\"}".getBytes();
+//        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+//                .post("/input")
+//                .content(content);
+//        mockMvc.perform(request);
+//
+//        EnrichedData data = enrichedDataRepository.findAll().remove(0);
+//        assertThat(data.getUuid()).isEqualTo("web");
+//        assertThat(data.getEnrichment()).isNull();
+//    }
 }
