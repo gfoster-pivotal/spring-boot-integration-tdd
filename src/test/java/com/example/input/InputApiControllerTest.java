@@ -48,7 +48,7 @@ public class InputApiControllerTest {
     public void sendDataRequest_shouldAcceptAPostRequest() throws Exception {
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
                 .post("/input")
-                .content("test");
+                .content("{\"input:\":\"test\"}");
         ResultActions resultActions = mockMvc.perform(request);
 
         resultActions.andExpect(MockMvcResultMatchers.status().isCreated());
@@ -58,7 +58,7 @@ public class InputApiControllerTest {
     public void sendDataRequest_shouldGoThroughTheFlow_ReturnAUniqueIdInACustomHeader() throws Exception {
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
                 .post("/input")
-                .content("test");
+                .content("{\"input:\":\"test\"}");
         ResultActions resultActions = mockMvc.perform(request);
 
         String uniqueId = resultActions.andReturn().getResponse().getHeader("X-UUID");
@@ -77,13 +77,14 @@ public class InputApiControllerTest {
 
     @Test
     public void sendDataRequest_shouldPersistData() throws Exception {
+        byte[] content = "{\"input:\":\"test\"}".getBytes();
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
                 .post("/input")
-                .content("test");
+                .content(content);
         mockMvc.perform(request);
 
         Data data = dataRepository.findAll().remove(0);
         assertThat(data.getSource()).isEqualTo("web");
-        assertThat(data.getOriginalData()).isEqualTo("test".getBytes());
+        assertThat(data.getOriginalData()).isEqualTo(content);
     }
 }

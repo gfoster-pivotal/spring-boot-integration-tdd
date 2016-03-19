@@ -38,15 +38,13 @@ public class InputControllerTest {
     @Test
     public void injectServiceInterface() throws URISyntaxException {
         // assemble
-//        Mockito.when(inputGateway.digest(Matchers.anyObject())).thenReturn(null);
-        Mockito.doNothing().when(inputGateway).digest(null);
+        Mockito.when(inputGateway.digest(Matchers.anyObject())).thenReturn(null);
 
         // act
         byte[] bytes = new byte[0];
         ResponseEntity<Void> responseEntity = inputController.receiveData(bytes);
 
         // assert
-//        Mockito.verify(inputGateway).digest(new String(bytes));
         Mockito.verify(inputGateway).digest(bytes);
     }
 

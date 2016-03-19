@@ -1,11 +1,9 @@
 package com.example.input.persistance;
 
-import javax.persistence.EntityListeners;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.time.ZonedDateTime;
 
+@Entity
 @EntityListeners(AuditEntityListener.class)
 public class EnrichedData {
     @Id

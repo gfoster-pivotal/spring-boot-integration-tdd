@@ -1,6 +1,5 @@
 package com.example.input;
 
-import com.example.input.persistance.Data;
 import com.example.input.persistance.EnrichedData;
 import com.example.input.persistance.EnrichedDataRepository;
 import org.assertj.core.api.Assertions;
@@ -13,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestOperations;
 
 import java.util.Collections;
-import java.util.Map;
 import java.util.Optional;
 
 public class DataEnrichmentServiceActivatorTest {
