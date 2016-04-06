@@ -22,11 +22,11 @@ public class InputControllerTest {
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
 
-    @InjectMocks
-    InputController inputController;
-
     @Mock
     InputGateway inputGateway;
+
+    @InjectMocks
+    InputController inputController;
 
     @Test
     public void receiveData() throws URISyntaxException {

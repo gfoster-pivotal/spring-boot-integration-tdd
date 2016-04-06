@@ -1,5 +1,6 @@
 package com.example;
 
+import com.example.input.DataEnrichmentServiceActivator;
 import com.example.input.InvalidDataFormatException;
 import com.example.input.persistance.Data;
 import com.example.input.persistance.DataRepository;
@@ -15,8 +16,10 @@ import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.dsl.support.Consumer;
 import org.springframework.integration.transformer.GenericTransformer;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -33,7 +36,7 @@ public class Flows {
     }
 
     @Bean
-    public IntegrationFlow orders(DataRepository dataRepository) {
+    public IntegrationFlow orders(DataRepository dataRepository, DataEnrichmentServiceActivator dataEnrichmentServiceActivator) {
         return IntegrationFlows.from("api.input")
                 .channel(MessageChannels.executor(Executors.newCachedThreadPool()))
                 .publishSubscribeChannel(publishSubscribeSpec -> {

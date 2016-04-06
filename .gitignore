@@ -15,3 +15,5 @@ target/
 mvnw*
 *.iml
 .idea
+
+enrichment-api/.mvn/

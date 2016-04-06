@@ -5,15 +5,18 @@ import com.example.input.persistance.Data;
 import com.example.input.persistance.DataRepository;
 import com.example.input.persistance.EnrichedData;
 import com.example.input.persistance.EnrichedDataRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.context.ApplicationContext;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.rules.SpringClassRule;
 import org.springframework.test.context.junit4.rules.SpringMethodRule;
+import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -21,7 +24,13 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 @SpringApplicationConfiguration(classes = DemoApplication.class)
 public class InputApiControllerTest {
@@ -39,6 +48,9 @@ public class InputApiControllerTest {
 
     @Autowired
     private EnrichedDataRepository enrichedDataRepository;
+
+    @Autowired
+    DataEnrichmentServiceActivator dataEnrichmentServiceActivator;
 
     private MockMvc mockMvc;
 
@@ -71,6 +83,31 @@ public class InputApiControllerTest {
     }
 
     @Test
+    public void sendDataRequest_shouldPersistEnrichedData() throws Exception {
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, Object> value = new HashMap<>();
+        value.put("enrichedData","enrichedData");
+        String string = objectMapper.writeValueAsString(value);
+
+        MockRestServiceServer mockServer = MockRestServiceServer.createServer(dataEnrichmentServiceActivator.getRestTemplate());
+        mockServer.expect(requestTo("http://google.com"))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess(string, MediaType.TEXT_PLAIN));
+
+        byte[] content = "{\"input:\":\"test\"}".getBytes();
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .post("/input")
+                .content(content);
+        mockMvc.perform(request);
+
+        EnrichedData data = enrichedDataRepository.findAll().remove(0);
+        assertThat(data.getUuid()).isNotNull();
+        assertThat(data.getEnrichment()).isNotNull();
+
+        mockServer.verify();
+    }
+
+    @Test
     public void sendDataRequest_shouldValidateData_BadRequestResponse() throws Exception {
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
                 .post("/input")
@@ -92,17 +129,4 @@ public class InputApiControllerTest {
         assertThat(data.getSource()).isEqualTo("web");
         assertThat(data.getOriginalData()).isEqualTo(content);
     }
-
-//    @Test
-//    public void sendDataRequest_shouldPersistEnrichedData() throws Exception {
-//        byte[] content = "{\"input:\":\"test\"}".getBytes();
-//        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
-//                .post("/input")
-//                .content(content);
-//        mockMvc.perform(request);
-//
-//        EnrichedData data = enrichedDataRepository.findAll().remove(0);
-//        assertThat(data.getUuid()).isEqualTo("web");
-//        assertThat(data.getEnrichment()).isNull();
-//    }
 }
