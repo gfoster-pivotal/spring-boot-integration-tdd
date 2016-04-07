@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class EnrichmentController {
 
-    @RequestMapping("/datum/enrichment")
+    @RequestMapping("/")
     public ResponseEntity<EnrichedData> getEnrichment() {
-        return ResponseEntity.ok(new EnrichedData("sample enrichment".getBytes()));
+            return ResponseEntity.ok(new EnrichedData("sample enrichment".getBytes()));
     }
 }

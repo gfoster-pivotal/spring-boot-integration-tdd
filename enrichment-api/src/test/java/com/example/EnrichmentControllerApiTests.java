@@ -1,5 +1,6 @@
 package com.example;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -14,9 +15,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import static org.hamcrest.CoreMatchers.is;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringApplicationConfiguration(classes = EnrichmentApiApplication.class)
@@ -42,10 +41,11 @@ public class EnrichmentControllerApiTests {
     @Test
     public void makeAnEnrichmentRequest_returns200AndEnrichedData() throws Exception {
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
-            .get("/datum/enrichment");
+            .get("/");
         ResultActions resultActions = mockMvc.perform(request);
 
         resultActions.andExpect(status().isOk());
-        resultActions.andExpect(content().json("{\"enrichedData\":}"));
+        String response = new ObjectMapper().writeValueAsString(new EnrichedData("sample enrichment".getBytes()));
+        resultActions.andExpect(content().json(response));
     }
 }
