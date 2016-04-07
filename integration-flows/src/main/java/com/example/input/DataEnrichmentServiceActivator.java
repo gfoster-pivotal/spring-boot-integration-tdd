@@ -22,7 +22,7 @@ public class DataEnrichmentServiceActivator {
     @Autowired
     public DataEnrichmentServiceActivator(EnrichedDataRepository enrichedDataRepository,
                                           RestTemplate restTemplate,
-                                          @Value("enrichment.server.url") String enrichmentHostUrl) {
+                                          @Value("${enrichment.server.url}") String enrichmentHostUrl) {
         this.enrichedDataRepository = enrichedDataRepository;
         this.restTemplate = restTemplate;
         this.enrichmentHostUrl = enrichmentHostUrl;

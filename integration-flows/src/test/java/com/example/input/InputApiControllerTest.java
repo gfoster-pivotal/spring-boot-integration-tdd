@@ -5,17 +5,21 @@ import com.example.input.persistance.Data;
 import com.example.input.persistance.DataRepository;
 import com.example.input.persistance.EnrichedData;
 import com.example.input.persistance.EnrichedDataRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.junit4.rules.SpringClassRule;
 import org.springframework.test.context.junit4.rules.SpringMethodRule;
+import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -23,6 +27,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,6 +37,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
+//@WebAppConfiguration
 @SpringApplicationConfiguration(classes = DemoApplication.class)
 public class InputApiControllerTest {
     @ClassRule
@@ -61,6 +67,19 @@ public class InputApiControllerTest {
                 .build();
     }
 
+    @Before
+    public void setupMockServer() throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, Object> value = new HashMap<>();
+        value.put("enrichedData","enrichedData");
+        String string = objectMapper.writeValueAsString(value);
+
+        MockRestServiceServer mockServer = MockRestServiceServer.createServer(dataEnrichmentServiceActivator.getRestTemplate());
+        mockServer.expect(requestTo("http://localhost:8081"))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess(string, MediaType.APPLICATION_JSON));
+    }
+
     @Test
     public void sendDataRequest_shouldAcceptAPostRequest() throws Exception {
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
@@ -84,16 +103,6 @@ public class InputApiControllerTest {
 
     @Test
     public void sendDataRequest_shouldPersistEnrichedData() throws Exception {
-        ObjectMapper objectMapper = new ObjectMapper();
-        Map<String, Object> value = new HashMap<>();
-        value.put("enrichedData","enrichedData");
-        String string = objectMapper.writeValueAsString(value);
-
-        MockRestServiceServer mockServer = MockRestServiceServer.createServer(dataEnrichmentServiceActivator.getRestTemplate());
-        mockServer.expect(requestTo("http://google.com"))
-                .andExpect(method(HttpMethod.GET))
-                .andRespond(withSuccess(string, MediaType.TEXT_PLAIN));
-
         byte[] content = "{\"input:\":\"test\"}".getBytes();
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
                 .post("/input")
@@ -103,8 +112,6 @@ public class InputApiControllerTest {
         EnrichedData data = enrichedDataRepository.findAll().remove(0);
         assertThat(data.getUuid()).isNotNull();
         assertThat(data.getEnrichment()).isNotNull();
-
-        mockServer.verify();
     }
 
     @Test
